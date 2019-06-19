@@ -75,7 +75,7 @@ const TAGENCODERS = {
 }
 
 const TAGPARSERS = {
-  '1': (words) => wordsToBuffer(words, true).toString('hex'), // 256 bits
+    '1': (words) => wordsToBuffer(words, true).toString('hex'), // 256 bits
   '13': (words) => wordsToBuffer(words, true).toString('utf8'), // string variable length
   '19': (words) => wordsToBuffer(words, true).toString('hex'), // 264 bits
   '23': (words) => wordsToBuffer(words, true).toString('hex'), // 256 bits
@@ -154,8 +154,8 @@ function wordsToBuffer (words, trim) {
 
 function hexToBuffer (hex) {
   if (hex !== undefined &&
-      (typeof hex === 'string' || hex instanceof String) &&
-      hex.match(/^([a-zA-Z0-9]{2})*$/)) {
+    (typeof hex === 'string' || hex instanceof String) &&
+    hex.match(/^([a-zA-Z0-9]{2})*$/)) {
     return Buffer.from(hex, 'hex')
   }
   return hex
@@ -354,7 +354,7 @@ function hrpToMillisat (hrpString, outputString) {
     : valueBN.mul(MILLISATS_PER_BTC)
 
   if (((divisor === 'p' && !valueBN.mod(new BN(10, 10)).eq(new BN(0, 10))) ||
-      millisatoshisBN.gt(MAX_MILLISATS))) {
+    millisatoshisBN.gt(MAX_MILLISATS))) {
     throw new Error('Amount is outside of valid range')
   }
 
@@ -367,7 +367,7 @@ function sign (inputPayReqObj, inputPrivateKey) {
   if (payReqObj.complete && payReqObj.paymentRequest) return payReqObj
 
   if (privateKey === undefined || privateKey.length !== 32 ||
-      !secp256k1.privateKeyVerify(privateKey)) {
+    !secp256k1.privateKeyVerify(privateKey)) {
     throw new Error('privateKey must be a 32 byte Buffer and valid private key')
   }
 
@@ -419,12 +419,10 @@ function sign (inputPayReqObj, inputPrivateKey) {
 /* MUST but default OK:
   coinType  (default: testnet OK)
   timestamp   (default: current time OK)
-
   MUST:
   signature OR privatekey
   tags[TAGNAMES['1']] (payment hash)
   tags[TAGNAMES['13']] OR tags[TAGNAMES['23']] (description or description for hashing (or description hash))
-
   MUST CHECK:
   IF tags[TAGNAMES['19']] (payee_node_key) THEN MUST CHECK THAT PUBKEY = PUBKEY OF PRIVATEKEY / SIGNATURE
   IF tags[TAGNAMES['9']] (fallback_address) THEN MUST CHECK THAT THE ADDRESS IS A VALID TYPE
@@ -491,29 +489,29 @@ function encode (inputData, addDefaults) {
   tags.forEach(tag => {
     const possibleTagNames = Object.keys(TAGENCODERS)
     if (canReconstruct) possibleTagNames.push(unknownTagName)
-    // check if the tagName exists in the encoders object, if not throw Error.
-    if (possibleTagNames.indexOf(tag.tagName) === -1) {
-      throw new Error('Unknown tag key: ' + tag.tagName)
-    }
+  // check if the tagName exists in the encoders object, if not throw Error.
+  if (possibleTagNames.indexOf(tag.tagName) === -1) {
+    throw new Error('Unknown tag key: ' + tag.tagName)
+  }
 
-    let words
-    if (tag.tagName !== unknownTagName) {
-      // each tag starts with 1 word code for the tag
-      tagWords.push(TAGCODES[tag.tagName])
+  let words
+  if (tag.tagName !== unknownTagName) {
+    // each tag starts with 1 word code for the tag
+    tagWords.push(TAGCODES[tag.tagName])
 
-      const encoder = TAGENCODERS[tag.tagName]
-      words = encoder(tag.data)
-    } else {
-      let result = unknownEncoder(tag.data)
-      tagWords.push(result.tagCode)
-      words = result.words
-    }
-    // after the tag code, 2 words are used to store the length (in 5 bit words) of the tag data
-    // (also left padded, most integers are left padded while buffers are right padded)
-    tagWords = tagWords.concat([0].concat(intBEToWords(words.length)).slice(-2))
-    // then append the tag data words
-    tagWords = tagWords.concat(words)
-  })
+    const encoder = TAGENCODERS[tag.tagName]
+    words = encoder(tag.data)
+  } else {
+    let result = unknownEncoder(tag.data)
+    tagWords.push(result.tagCode)
+    words = result.words
+  }
+  // after the tag code, 2 words are used to store the length (in 5 bit words) of the tag data
+  // (also left padded, most integers are left padded while buffers are right padded)
+  tagWords = tagWords.concat([0].concat(intBEToWords(words.length)).slice(-2))
+  // then append the tag data words
+  tagWords = tagWords.concat(words)
+})
 
   // the data part of the bech32 is TIMESTAMP || TAGS || SIGNATURE
   // currently dataWords = TIMESTAMP || TAGS
